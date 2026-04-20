@@ -11,7 +11,7 @@
 
     <style>
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-bg: rgba(255, 255, 255, 0.88);
             --text-dark: #2c3e50;
             --ocean-blue: #a2d2ff;
             --ocean-pink: #fbc2eb;
@@ -19,88 +19,68 @@
         }
 
         body {
-            margin: 0; padding: 0; height: 100vh;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            margin: 0; padding: 20px; min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
             font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: #fff; overflow: hidden;
+            background: #fff; overflow-x: hidden;
         }
 
-        /* الأمواج التفاعلية */
-        .ocean {
-            height: 100%; width: 100%; position: absolute;
-            bottom: 0; left: 0;
-            background: linear-gradient(180deg, #ffffff 0%, var(--ocean-pink) 50%, var(--ocean-blue) 100%);
-            z-index: -1;
-        }
-
-        .wave {
-            background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/85486/wave.svg') repeat-x;
-            position: absolute; bottom: -20px; width: 6400px; height: 280px;
-            animation: wave-move var(--wave-speed) linear infinite;
-            opacity: 0.4;
-        }
-
-        .wave:nth-of-type(2) {
-            bottom: -40px;
-            animation: wave-move calc(var(--wave-speed) * 0.7) linear infinite, breaking 7s ease-in-out infinite;
-            opacity: 0.3; filter: hue-rotate(-20deg);
-        }
-
+        .ocean { height: 100%; width: 100%; position: fixed; bottom: 0; left: 0; background: linear-gradient(180deg, #ffffff 0%, var(--ocean-pink) 50%, var(--ocean-blue) 100%); z-index: -1; }
+        .wave { background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/85486/wave.svg') repeat-x; position: absolute; bottom: -20px; width: 6400px; height: 280px; animation: wave-move var(--wave-speed) linear infinite; opacity: 0.4; }
         @keyframes wave-move { 0% { transform: translateX(0); } 100% { transform: translateX(-1600px); } }
-        @keyframes breaking { 0%, 100% { transform: translateY(0) skewX(0deg); } 50% { transform: translateY(-40px) skewX(-4deg); } }
 
-        /* الواجهة الزجاجية */
         .glass-container {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px); border-radius: 30px; padding: 25px;
-            width: 88%; max-width: 440px; border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 10;
+            background: var(--glass-bg); backdrop-filter: blur(20px); border-radius: 30px;
+            padding: 25px; width: 95%; max-width: 500px; border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 10; margin-bottom: 80px;
         }
 
         h2 { text-align: center; color: var(--text-dark); margin: 0 0 15px 0; font-weight: 300; }
-
         .form-grid { display: grid; gap: 10px; }
-        input, textarea {
-            width: 100%; padding: 12px; border-radius: 12px; border: none;
-            background: rgba(255,255,255,0.8); box-sizing: border-box; outline: none;
-            font-size: 14px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-        }
-
+        input, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); background: rgba(255,255,255,0.8); box-sizing: border-box; outline: none; font-size: 14px; }
         .multi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
         .toolbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
-        .btn {
-            background: #fff; border: none; padding: 10px; border-radius: 15px; cursor: pointer;
-            display: flex; flex-direction: column; align-items: center; transition: 0.3s;
-        }
+        .btn { background: #fff; border: none; padding: 10px; border-radius: 15px; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.3s; }
         .btn:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.05); }
         .btn i { font-size: 18px; margin-bottom: 4px; }
         .btn span { font-size: 10px; font-weight: bold; }
 
-        /* حقوق الملكية الفكرية */
-        .copyright {
-            margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(0, 0, 0, 0.05);
-            text-align: center; color: #7f8c8d;
+        /* شاشة عرض السجلات المضافة */
+        .records-display {
+            margin-top: 25px; padding: 15px; background: rgba(255, 255, 255, 0.5);
+            border-radius: 20px; border: 1px dashed var(--ocean-blue);
+            display: none; /* تظهر فقط عند وجود بيانات */
         }
-        .dev-name { display: block; font-weight: 600; color: var(--text-dark); font-size: 13px; margin-bottom: 2px; }
-        .dev-email { font-size: 10px; font-style: italic; opacity: 0.8; }
+        .record-card {
+            background: white; padding: 12px; border-radius: 12px; margin-bottom: 10px;
+            font-size: 13px; border-right: 4px solid var(--ocean-blue); position: relative;
+        }
+        .record-card h4 { margin: 0 0 5px 0; color: var(--text-dark); }
+        .record-card p { margin: 2px 0; color: #666; font-size: 11px; }
+        .print-mini-btn {
+            position: absolute; left: 10px; top: 10px;
+            background: var(--ocean-blue); color: white; border: none;
+            padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 10px;
+        }
 
-        /* التحكم بالسرعة */
-        .control-panel {
-            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.5); padding: 8px 18px; border-radius: 40px;
-            display: flex; align-items: center; gap: 12px; backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3); z-index: 100;
+        .copyright { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(0, 0, 0, 0.05); text-align: center; color: #7f8c8d; }
+        .dev-name { display: block; font-weight: 600; color: var(--text-dark); font-size: 13px; }
+
+        @media print {
+            .ocean, .toolbar, .form-grid, .control-panel, h2, .print-mini-btn, .copyright { display: none !important; }
+            body { background: white; padding: 0; }
+            .glass-container { box-shadow: none; border: none; width: 100%; max-width: none; }
+            .records-display { display: block !important; border: none; }
+            .record-card { border: 1px solid #eee; break-inside: avoid; }
         }
-        input[type=range] { cursor: pointer; width: 100px; accent-color: var(--ocean-blue); }
+
+        .control-panel { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.5); padding: 8px 18px; border-radius: 40px; display: flex; align-items: center; gap: 12px; backdrop-filter: blur(10px); z-index: 100; }
     </style>
 </head>
 <body>
 
-    <div class="ocean">
-        <div class="wave"></div>
-        <div class="wave"></div>
-    </div>
+    <div class="ocean"><div class="wave"></div><div class="wave"></div></div>
 
     <div class="glass-container">
         <h2>السجلات السحابية</h2>
@@ -113,31 +93,34 @@
             </div>
             <input type="text" id="family" placeholder="العائلة">
             <input type="text" id="city" placeholder="المدينة">
-            <textarea id="terms" rows="2" placeholder="ملاحظات وشروط"></textarea>
+            <textarea id="terms" rows="2" placeholder="الشروط والملاحظات"></textarea>
         </div>
 
         <div class="toolbar">
-            <button class="btn" style="color: #2ecc71;" onclick="saveToCloud()"><i class="fas fa-cloud-upload-alt"></i><span>حفظ</span></button>
+            <button class="btn" style="color: #2ecc71;" onclick="saveToCloud()"><i class="fas fa-save"></i><span>حفظ</span></button>
             <button class="btn" style="color: #3498db;" onclick="loadFromCloud()"><i class="fas fa-sync"></i><span>مزامنة</span></button>
-            <button class="btn" style="color: #e74c3c;" onclick="resetForm()"><i class="fas fa-eraser"></i><span>مسح</span></button>
-            <button class="btn" style="color: #f1c40f;" onclick="alert('اتصال سحابي آمن')"><i class="fas fa-shield-alt"></i><span>آمن</span></button>
+            <button class="btn" style="color: #e74c3c;" onclick="resetForm()"><i class="fas fa-trash-alt"></i><span>مسح</span></button>
+            <button class="btn" style="color: #f1c40f;" onclick="window.print()"><i class="fas fa-print"></i><span>طباعة</span></button>
+        </div>
+
+        <div id="recordsDisplay" class="records-display">
+            <h5 style="margin: 0 0 10px 0; color: var(--text-dark);"><i class="fas fa-list-ul"></i> السجل الحالي المعاين:</h5>
+            <div id="recordContent"></div>
         </div>
 
         <div class="copyright">
-            <span style="font-size: 10px; display: block; margin-bottom: 3px;">التطوير والبرمجة</span>
+            <span style="font-size: 10px;">التطوير والبرمجة</span>
             <span class="dev-name">ماجد محمد القويعاني</span>
-            <span class="dev-email">maged.qwani@gmail.com</span>
+            <span style="font-size: 10px;">maged.qwani@gmail.com</span>
         </div>
     </div>
 
     <div class="control-panel">
-        <i class="fas fa-water" style="color: #3498db; font-size: 14px;"></i>
+        <i class="fas fa-water" style="color: #3498db;"></i>
         <input type="range" id="speedRange" min="5" max="60" value="20">
-        <span id="speedValue" style="font-size: 10px; font-weight: bold; width: 45px;">متوسط</span>
     </div>
 
     <script>
-        // إعدادات Firebase الخاصة بك
         const firebaseConfig = {
             apiKey: "AIzaSyCCU7ngPz4swM0jRDpmQ8GS9bMgp2Kh1IU",
             authDomain: "oceanproject-a02aa.firebaseapp.com",
@@ -148,14 +131,28 @@
             measurementId: "G-9NLZ7PG1WR"
         };
 
-        // بدء تشغيل Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // وظيفة الحفظ السحابي
+        function displayRecord(data) {
+            const displayArea = document.getElementById('recordsDisplay');
+            const content = document.getElementById('recordContent');
+            displayArea.style.display = 'block';
+            content.innerHTML = `
+                <div class="record-card">
+                    <button class="print-mini-btn" onclick="window.print()">طباعة هذا السجل</button>
+                    <h4>${data.name} ${data.family}</h4>
+                    <p><b>العمر:</b> ${data.age} | <b>الطول:</b> ${data.height} | <b>الوزن:</b> ${data.weight}</p>
+                    <p><b>المدينة:</b> ${data.city}</p>
+                    <p><b>ملاحظات:</b> ${data.terms}</p>
+                    <p style="font-size:9px; color:#aaa; margin-top:5px;">تاريخ السجل: ${new Date(data.updatedAt).toLocaleString('ar-SA')}</p>
+                </div>
+            `;
+        }
+
         function saveToCloud() {
             const name = document.getElementById('name').value;
-            if(!name) return alert("يرجى كتابة الاسم للحفظ");
+            if(!name) return alert("الاسم مطلوب");
 
             const userData = {
                 name: name,
@@ -168,16 +165,17 @@
                 updatedAt: new Date().toISOString()
             };
 
-            // حفظ البيانات تحت الاسم المدخل
             database.ref('records/' + name.replace(/\s/g, '_')).set(userData)
-                .then(() => alert("تم الحفظ في السحابة بنجاح!"))
-                .catch(error => alert("خطأ في الحفظ: " + error.message));
+                .then(() => {
+                    alert("تم الحفظ سحابياً");
+                    displayRecord(userData);
+                })
+                .catch(err => alert("خطأ: " + err.message));
         }
 
-        // وظيفة جلب البيانات من السحابة
         function loadFromCloud() {
             const name = document.getElementById('name').value;
-            if(!name) return alert("اكتب الاسم المراد استرجاع بياناته");
+            if(!name) return alert("اكتب الاسم للمزامنة");
 
             database.ref('records/' + name.replace(/\s/g, '_')).once('value').then((snapshot) => {
                 if (snapshot.exists()) {
@@ -188,26 +186,22 @@
                     document.getElementById('family').value = data.family;
                     document.getElementById('city').value = data.city;
                     document.getElementById('terms').value = data.terms;
-                    alert("تمت مزامنة البيانات السحابية بنجاح");
+                    displayRecord(data);
                 } else {
-                    alert("عذراً، لا توجد سجلات بهذا الاسم في السحابة");
+                    alert("لا يوجد سجل بهذا الاسم");
                 }
             });
         }
 
-        // التحكم في سرعة الأمواج
-        const range = document.getElementById('speedRange');
-        const speedText = document.getElementById('speedValue');
-        range.addEventListener('input', (e) => {
-            const val = e.target.value;
-            document.documentElement.style.setProperty('--wave-speed', val + 's');
-            speedText.innerText = val > 40 ? "هادئ" : val < 15 ? "سريع" : "متوسط";
-        });
-
-        function resetForm() { 
-            if(confirm("تأكيد مسح جميع الحقول؟")) 
-                document.querySelectorAll('input, textarea').forEach(i=>i.value=''); 
+        function resetForm() {
+            document.querySelectorAll('input, textarea').forEach(i=>i.value='');
+            document.getElementById('recordsDisplay').style.display = 'none';
         }
+
+        const range = document.getElementById('speedRange');
+        range.addEventListener('input', (e) => {
+            document.documentElement.style.setProperty('--wave-speed', e.target.value + 's');
+        });
     </script>
 </body>
 </html>
