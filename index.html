@@ -22,34 +22,30 @@
         .wave { background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/85486/wave.svg') repeat-x; position: absolute; bottom: -20px; width: 6400px; height: 280px; animation: wave-move var(--wave-speed) linear infinite; opacity: 0.3; }
         @keyframes wave-move { 0% { transform: translateX(0); } 100% { transform: translateX(-1600px); } }
 
-        .glass-container { background: var(--glass-bg); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; width: 95%; max-width: 550px; border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 10; position: relative; }
+        .glass-container { background: var(--glass-bg); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; width: 95%; max-width: 600px; border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 10; margin-bottom: 50px; }
 
         .form-grid { display: grid; gap: 10px; }
-        input, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #eee; background: rgba(255,255,255,0.8); box-sizing: border-box; font-family: inherit; }
+        input, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #eee; background: rgba(255,255,255,0.8); box-sizing: border-box; font-family: inherit; outline: none; }
         .multi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
-        /* شريط الأدوات المطور لـ 6 أزرار */
-        .toolbar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 15px; }
-        @media (min-width: 480px) { .toolbar { grid-template-columns: repeat(6, 1fr); } }
+        .toolbar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 15px; margin-bottom: 20px; }
+        @media (min-width: 480px) { .toolbar { grid-template-columns: repeat(5, 1fr); } }
         
         .btn { background: #fff; border: none; padding: 10px 5px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .btn i { font-size: 16px; margin-bottom: 4px; }
         .btn span { font-size: 9px; font-weight: bold; }
 
-        /* شاشة عرض السجلات الكاملة (Popup) */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
-        .modal-content { background: white; margin: 5% auto; padding: 20px; border-radius: 20px; width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto; position: relative; }
-        .close-btn { position: absolute; left: 20px; top: 15px; font-size: 24px; cursor: pointer; color: #e74c3c; }
+        /* تنسيق الجدول التلقائي */
+        .table-section { margin-top: 25px; border-top: 2px solid rgba(0,0,0,0.05); padding-top: 20px; }
+        .table-wrapper { width: 100%; overflow-x: auto; border-radius: 15px; background: rgba(255,255,255,0.5); }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 400px; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        th { background-color: var(--ocean-blue); color: white; font-weight: 600; }
+        tr:hover { background-color: rgba(255,255,255,0.8); }
+        .delete-btn { color: #e74c3c; cursor: pointer; border: none; background: none; font-size: 16px; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-        th, td { border: 1px solid #eee; padding: 10px; text-align: center; }
-        th { background-color: var(--ocean-blue); color: white; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        
-        .delete-small { color: #e74c3c; cursor: pointer; border: none; background: none; }
-
-        .copyright { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(0, 0, 0, 0.05); text-align: center; color: #7f8c8d; font-size: 12px; }
+        .copyright { margin-top: 15px; text-align: center; color: #7f8c8d; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -57,7 +53,8 @@
     <div class="ocean"><div class="wave"></div><div class="wave"></div></div>
 
     <div class="glass-container">
-        <h3 style="text-align: center; margin-bottom: 15px;">إدارة البيانات السحابية</h3>
+        <h3 style="text-align: center; margin-bottom: 15px; color: var(--text-dark);">إدارة السجلات السحابية</h3>
+        
         <div class="form-grid">
             <input type="text" id="name" placeholder="الاسم الكامل">
             <div class="multi-row">
@@ -73,35 +70,29 @@
         <div class="toolbar">
             <button class="btn" style="color: #2ecc71;" onclick="saveToCloud()"><i class="fas fa-save"></i><span>حفظ</span></button>
             <button class="btn" style="color: #3498db;" onclick="loadFromCloud()"><i class="fas fa-sync"></i><span>مزامنة</span></button>
-            <button class="btn" style="color: #f39c12;" onclick="showAllRecords()"><i class="fas fa-table"></i><span>كل السجلات</span></button>
             <button class="btn" style="color: #9b59b6;" onclick="prepareNew()"><i class="fas fa-plus"></i><span>جديد</span></button>
-            <button class="btn" style="color: #e74c3c;" onclick="resetAllFields()"><i class="fas fa-trash"></i><span>حذف</span></button>
+            <button class="btn" style="color: #e67e22;" onclick="clearInputs()"><i class="fas fa-eraser"></i><span>مسح</span></button>
             <button class="btn" style="color: #2c3e50;" onclick="window.print()"><i class="fas fa-print"></i><span>طباعة</span></button>
         </div>
 
         <div class="copyright">
-            تم التطوير بواسطة: <b>ماجد محمد القويعاني</b><br>
+            تطوير المبرمج: <b>ماجد محمد القويعاني</b><br>
             <small>maged.qwani@gmail.com</small>
         </div>
-    </div>
 
-    <div id="recordsModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h3 style="text-align: center;"><i class="fas fa-database"></i> قاعدة البيانات السحابية</h3>
-            <div id="tableContainer">
-                <table id="recordsTable">
+        <div class="table-section">
+            <h4 style="margin-bottom: 10px; color: var(--text-dark);"><i class="fas fa-database"></i> السجلات المحفوظة حالياً:</h4>
+            <div class="table-wrapper">
+                <table>
                     <thead>
                         <tr>
                             <th>الاسم</th>
-                            <th>العائلة</th>
-                            <th>العمر</th>
                             <th>المدينة</th>
-                            <th>تاريخ الحفظ</th>
-                            <th>إجراء</th>
+                            <th>التاريخ</th>
+                            <th>حذف</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody">
+                    <tbody id="autoTableBody">
                         </tbody>
                 </table>
             </div>
@@ -122,9 +113,30 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
+        // وظيفة التحديث التلقائي للجدول عند حدوث أي تغيير في السحابة
+        database.ref('records').on('value', (snapshot) => {
+            const body = document.getElementById('autoTableBody');
+            body.innerHTML = "";
+            if (snapshot.exists()) {
+                snapshot.forEach((child) => {
+                    const row = child.val();
+                    body.innerHTML += `
+                        <tr>
+                            <td style="font-weight:bold;">${row.name}</td>
+                            <td>${row.city || '-'}</td>
+                            <td style="font-size:10px;">${row.updatedAt.split(',')[0]}</td>
+                            <td><button class="delete-btn" onclick="deleteRecord('${child.key}')"><i class="fas fa-minus-circle"></i></button></td>
+                        </tr>
+                    `;
+                });
+            } else {
+                body.innerHTML = "<tr><td colspan='4'>لا توجد سجلات حالياً</td></tr>";
+            }
+        });
+
         function saveToCloud() {
             const name = document.getElementById('name').value;
-            if(!name) return alert("الاسم ضروري!");
+            if(!name) return alert("الاسم مطلوب");
             const data = {
                 name, family: document.getElementById('family').value,
                 age: document.getElementById('age').value, height: document.getElementById('height').value,
@@ -132,55 +144,33 @@
                 terms: document.getElementById('terms').value, updatedAt: new Date().toLocaleString('ar-SA')
             };
             database.ref('records/' + name.replace(/\s/g, '_')).set(data)
-                .then(() => alert("تم الحفظ بنجاح!")).catch(e => alert(e.message));
-        }
-
-        function showAllRecords() {
-            const body = document.getElementById('tableBody');
-            body.innerHTML = "<tr><td colspan='6'>جاري تحميل البيانات...</td></tr>";
-            document.getElementById('recordsModal').style.display = 'block';
-
-            database.ref('records').once('value').then((snapshot) => {
-                body.innerHTML = "";
-                snapshot.forEach((childSnapshot) => {
-                    const row = childSnapshot.val();
-                    body.innerHTML += `
-                        <tr>
-                            <td>${row.name}</td>
-                            <td>${row.family}</td>
-                            <td>${row.age}</td>
-                            <td>${row.city}</td>
-                            <td>${row.updatedAt}</td>
-                            <td><button class="delete-small" onclick="deleteRecord('${childSnapshot.key}')"><i class="fas fa-times-circle"></i></button></td>
-                        </tr>
-                    `;
-                });
-            });
+                .then(() => alert("تم الحفظ بنجاح")).catch(e => alert(e.message));
         }
 
         function deleteRecord(key) {
-            if(confirm("هل تريد حذف هذا السجل نهائياً من السحابة؟")) {
-                database.ref('records/' + key).remove().then(() => showAllRecords());
+            if(confirm("هل أنت متأكد من حذف هذا السجل نهائياً؟")) {
+                database.ref('records/' + key).remove();
             }
         }
 
         function loadFromCloud() {
             const name = document.getElementById('name').value;
+            if(!name) return alert("اكتب الاسم للمزامنة");
             database.ref('records/' + name.replace(/\s/g, '_')).once('value').then(s => {
                 if(s.exists()){
                     const d = s.val();
                     document.getElementById('family').value = d.family;
                     document.getElementById('age').value = d.age;
+                    document.getElementById('height').value = d.height;
+                    document.getElementById('weight').value = d.weight;
                     document.getElementById('city').value = d.city;
                     document.getElementById('terms').value = d.terms;
-                    alert("تم جلب البيانات");
                 } else alert("لا يوجد سجل");
             });
         }
 
-        function closeModal() { document.getElementById('recordsModal').style.display = 'none'; }
-        function prepareNew() { document.querySelectorAll('input, textarea').forEach(i => i.value = ''); }
-        function resetAllFields() { if(confirm("مسح الحقول؟")) prepareNew(); }
+        function clearInputs() { document.querySelectorAll('input, textarea').forEach(i => i.value = ''); }
+        function prepareNew() { clearInputs(); document.getElementById('name').focus(); }
     </script>
 </body>
 </html>
