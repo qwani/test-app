@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق المحيط السحابي - ماجد القويعاني</title>
+    <title>نظام المحيط السحابي - ماجد القويعاني</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -11,64 +11,45 @@
 
     <style>
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.88);
+            --glass-bg: rgba(255, 255, 255, 0.9);
             --text-dark: #2c3e50;
             --ocean-blue: #a2d2ff;
-            --ocean-pink: #fbc2eb;
             --wave-speed: 20s; 
         }
 
-        body {
-            margin: 0; padding: 20px; min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: #fff; overflow-x: hidden;
-        }
-
-        .ocean { height: 100%; width: 100%; position: fixed; bottom: 0; left: 0; background: linear-gradient(180deg, #ffffff 0%, var(--ocean-pink) 50%, var(--ocean-blue) 100%); z-index: -1; }
-        .wave { background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/85486/wave.svg') repeat-x; position: absolute; bottom: -20px; width: 6400px; height: 280px; animation: wave-move var(--wave-speed) linear infinite; opacity: 0.4; }
+        body { margin: 0; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; font-family: 'Segoe UI', sans-serif; background: #fff; overflow-x: hidden; }
+        .ocean { height: 100%; width: 100%; position: fixed; bottom: 0; left: 0; background: linear-gradient(180deg, #ffffff 0%, #fbc2eb 50%, var(--ocean-blue) 100%); z-index: -1; }
+        .wave { background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/85486/wave.svg') repeat-x; position: absolute; bottom: -20px; width: 6400px; height: 280px; animation: wave-move var(--wave-speed) linear infinite; opacity: 0.3; }
         @keyframes wave-move { 0% { transform: translateX(0); } 100% { transform: translateX(-1600px); } }
 
-        .glass-container {
-            background: var(--glass-bg); backdrop-filter: blur(20px); border-radius: 30px;
-            padding: 25px; width: 95%; max-width: 500px; border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 10; margin-bottom: 80px;
-        }
+        .glass-container { background: var(--glass-bg); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; width: 95%; max-width: 550px; border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 10; position: relative; }
 
-        h2 { text-align: center; color: var(--text-dark); margin: 0 0 15px 0; font-weight: 300; }
         .form-grid { display: grid; gap: 10px; }
-        input, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); background: rgba(255,255,255,0.8); box-sizing: border-box; outline: none; font-size: 14px; }
+        input, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #eee; background: rgba(255,255,255,0.8); box-sizing: border-box; font-family: inherit; }
         .multi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
-        /* تعديل شريط الأدوات ليناسب 5 أزرار */
-        .toolbar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
-        .btn { background: #fff; border: none; padding: 10px 5px; border-radius: 15px; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.3s; }
-        .btn:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.05); }
-        .btn i { font-size: 16px; margin-bottom: 4px; }
-        .btn span { font-size: 9px; font-weight: bold; white-space: nowrap; }
-
-        .records-display {
-            margin-top: 25px; padding: 15px; background: rgba(255, 255, 255, 0.5);
-            border-radius: 20px; border: 1px dashed var(--ocean-blue);
-            display: none; 
-        }
-        .record-card {
-            background: white; padding: 12px; border-radius: 12px; margin-bottom: 10px;
-            font-size: 13px; border-right: 4px solid var(--ocean-blue); position: relative;
-        }
-        .record-card h4 { margin: 0 0 5px 0; color: var(--text-dark); }
+        /* شريط الأدوات المطور لـ 6 أزرار */
+        .toolbar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 15px; }
+        @media (min-width: 480px) { .toolbar { grid-template-columns: repeat(6, 1fr); } }
         
-        .copyright { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(0, 0, 0, 0.05); text-align: center; color: #7f8c8d; }
-        .dev-name { display: block; font-weight: 600; color: var(--text-dark); font-size: 13px; }
+        .btn { background: #fff; border: none; padding: 10px 5px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .btn i { font-size: 16px; margin-bottom: 4px; }
+        .btn span { font-size: 9px; font-weight: bold; }
 
-        @media print {
-            .ocean, .toolbar, .form-grid, .control-panel, h2, .copyright { display: none !important; }
-            body { background: white; padding: 0; }
-            .glass-container { box-shadow: none; border: none; width: 100%; max-width: none; }
-            .records-display { display: block !important; border: none; }
-        }
+        /* شاشة عرض السجلات الكاملة (Popup) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
+        .modal-content { background: white; margin: 5% auto; padding: 20px; border-radius: 20px; width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto; position: relative; }
+        .close-btn { position: absolute; left: 20px; top: 15px; font-size: 24px; cursor: pointer; color: #e74c3c; }
 
-        .control-panel { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.5); padding: 8px 18px; border-radius: 40px; display: flex; align-items: center; gap: 12px; backdrop-filter: blur(10px); z-index: 100; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+        th, td { border: 1px solid #eee; padding: 10px; text-align: center; }
+        th { background-color: var(--ocean-blue); color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        .delete-small { color: #e74c3c; cursor: pointer; border: none; background: none; }
+
+        .copyright { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(0, 0, 0, 0.05); text-align: center; color: #7f8c8d; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -76,7 +57,7 @@
     <div class="ocean"><div class="wave"></div><div class="wave"></div></div>
 
     <div class="glass-container">
-        <h2>السجلات السحابية</h2>
+        <h3 style="text-align: center; margin-bottom: 15px;">إدارة البيانات السحابية</h3>
         <div class="form-grid">
             <input type="text" id="name" placeholder="الاسم الكامل">
             <div class="multi-row">
@@ -86,32 +67,45 @@
             </div>
             <input type="text" id="family" placeholder="العائلة">
             <input type="text" id="city" placeholder="المدينة">
-            <textarea id="terms" rows="2" placeholder="الشروط والملاحظات"></textarea>
+            <textarea id="terms" rows="2" placeholder="ملاحظات إضافية"></textarea>
         </div>
 
         <div class="toolbar">
             <button class="btn" style="color: #2ecc71;" onclick="saveToCloud()"><i class="fas fa-save"></i><span>حفظ</span></button>
             <button class="btn" style="color: #3498db;" onclick="loadFromCloud()"><i class="fas fa-sync"></i><span>مزامنة</span></button>
-            <button class="btn" style="color: #9b59b6;" onclick="prepareNewRecord()"><i class="fas fa-user-plus"></i><span>سجل جديد</span></button>
-            <button class="btn" style="color: #e74c3c;" onclick="resetAll()"><i class="fas fa-trash-alt"></i><span>حذف الكل</span></button>
-            <button class="btn" style="color: #f1c40f;" onclick="window.print()"><i class="fas fa-print"></i><span>طباعة</span></button>
-        </div>
-
-        <div id="recordsDisplay" class="records-display">
-            <h5 style="margin: 0 0 10px 0; color: var(--text-dark);"><i class="fas fa-eye"></i> معاينة السجل المحفوظ:</h5>
-            <div id="recordContent"></div>
+            <button class="btn" style="color: #f39c12;" onclick="showAllRecords()"><i class="fas fa-table"></i><span>كل السجلات</span></button>
+            <button class="btn" style="color: #9b59b6;" onclick="prepareNew()"><i class="fas fa-plus"></i><span>جديد</span></button>
+            <button class="btn" style="color: #e74c3c;" onclick="resetAllFields()"><i class="fas fa-trash"></i><span>حذف</span></button>
+            <button class="btn" style="color: #2c3e50;" onclick="window.print()"><i class="fas fa-print"></i><span>طباعة</span></button>
         </div>
 
         <div class="copyright">
-            <span style="font-size: 10px;">التطوير والبرمجة</span>
-            <span class="dev-name">ماجد محمد القويعاني</span>
-            <span style="font-size: 10px;">maged.qwani@gmail.com</span>
+            تم التطوير بواسطة: <b>ماجد محمد القويعاني</b><br>
+            <small>maged.qwani@gmail.com</small>
         </div>
     </div>
 
-    <div class="control-panel">
-        <i class="fas fa-water" style="color: #3498db;"></i>
-        <input type="range" id="speedRange" min="5" max="60" value="20">
+    <div id="recordsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3 style="text-align: center;"><i class="fas fa-database"></i> قاعدة البيانات السحابية</h3>
+            <div id="tableContainer">
+                <table id="recordsTable">
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>العائلة</th>
+                            <th>العمر</th>
+                            <th>المدينة</th>
+                            <th>تاريخ الحفظ</th>
+                            <th>إجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -128,82 +122,65 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        function displayRecord(data) {
-            const displayArea = document.getElementById('recordsDisplay');
-            const content = document.getElementById('recordContent');
-            displayArea.style.display = 'block';
-            content.innerHTML = `
-                <div class="record-card">
-                    <h4>${data.name} ${data.family}</h4>
-                    <p><b>العمر:</b> ${data.age} | <b>الطول:</b> ${data.height} | <b>الوزن:</b> ${data.weight}</p>
-                    <p><b>المدينة:</b> ${data.city}</p>
-                    <p><b>ملاحظات:</b> ${data.terms}</p>
-                    <p style="font-size:9px; color:#aaa; margin-top:5px;">تم التحديث: ${new Date(data.updatedAt).toLocaleString('ar-SA')}</p>
-                </div>
-            `;
-        }
-
         function saveToCloud() {
             const name = document.getElementById('name').value;
-            if(!name) return alert("الاسم مطلوب");
-
-            const userData = {
-                name: name,
-                age: document.getElementById('age').value,
-                height: document.getElementById('height').value,
-                weight: document.getElementById('weight').value,
-                family: document.getElementById('family').value,
-                city: document.getElementById('city').value,
-                terms: document.getElementById('terms').value,
-                updatedAt: new Date().toISOString()
+            if(!name) return alert("الاسم ضروري!");
+            const data = {
+                name, family: document.getElementById('family').value,
+                age: document.getElementById('age').value, height: document.getElementById('height').value,
+                weight: document.getElementById('weight').value, city: document.getElementById('city').value,
+                terms: document.getElementById('terms').value, updatedAt: new Date().toLocaleString('ar-SA')
             };
-
-            database.ref('records/' + name.replace(/\s/g, '_')).set(userData)
-                .then(() => {
-                    alert("تم الحفظ بنجاح");
-                    displayRecord(userData);
-                })
-                .catch(err => alert("خطأ: " + err.message));
+            database.ref('records/' + name.replace(/\s/g, '_')).set(data)
+                .then(() => alert("تم الحفظ بنجاح!")).catch(e => alert(e.message));
         }
 
-        // الوظيفة الجديدة: تفريغ الحقول لسجل جديد مع بقاء المعاينة
-        function prepareNewRecord() {
-            document.querySelectorAll('input, textarea').forEach(i => i.value = '');
-            // نترك شاشة المعاينة ظاهرة كما هي ليعرف المستخدم ماذا حفظ آخر مرة
-            document.getElementById('name').focus(); // وضع المؤشر على حقل الاسم فوراً
+        function showAllRecords() {
+            const body = document.getElementById('tableBody');
+            body.innerHTML = "<tr><td colspan='6'>جاري تحميل البيانات...</td></tr>";
+            document.getElementById('recordsModal').style.display = 'block';
+
+            database.ref('records').once('value').then((snapshot) => {
+                body.innerHTML = "";
+                snapshot.forEach((childSnapshot) => {
+                    const row = childSnapshot.val();
+                    body.innerHTML += `
+                        <tr>
+                            <td>${row.name}</td>
+                            <td>${row.family}</td>
+                            <td>${row.age}</td>
+                            <td>${row.city}</td>
+                            <td>${row.updatedAt}</td>
+                            <td><button class="delete-small" onclick="deleteRecord('${childSnapshot.key}')"><i class="fas fa-times-circle"></i></button></td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        function deleteRecord(key) {
+            if(confirm("هل تريد حذف هذا السجل نهائياً من السحابة؟")) {
+                database.ref('records/' + key).remove().then(() => showAllRecords());
+            }
         }
 
         function loadFromCloud() {
             const name = document.getElementById('name').value;
-            if(!name) return alert("اكتب الاسم للمزامنة");
-
-            database.ref('records/' + name.replace(/\s/g, '_')).once('value').then((snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    document.getElementById('age').value = data.age;
-                    document.getElementById('height').value = data.height;
-                    document.getElementById('weight').value = data.weight;
-                    document.getElementById('family').value = data.family;
-                    document.getElementById('city').value = data.city;
-                    document.getElementById('terms').value = data.terms;
-                    displayRecord(data);
-                } else {
-                    alert("لا يوجد سجل");
-                }
+            database.ref('records/' + name.replace(/\s/g, '_')).once('value').then(s => {
+                if(s.exists()){
+                    const d = s.val();
+                    document.getElementById('family').value = d.family;
+                    document.getElementById('age').value = d.age;
+                    document.getElementById('city').value = d.city;
+                    document.getElementById('terms').value = d.terms;
+                    alert("تم جلب البيانات");
+                } else alert("لا يوجد سجل");
             });
         }
 
-        function resetAll() {
-            if(confirm("سيتم مسح الحقول وشاشة المعاينة، هل أنت متأكد؟")) {
-                document.querySelectorAll('input, textarea').forEach(i => i.value = '');
-                document.getElementById('recordsDisplay').style.display = 'none';
-            }
-        }
-
-        const range = document.getElementById('speedRange');
-        range.addEventListener('input', (e) => {
-            document.documentElement.style.setProperty('--wave-speed', e.target.value + 's');
-        });
+        function closeModal() { document.getElementById('recordsModal').style.display = 'none'; }
+        function prepareNew() { document.querySelectorAll('input, textarea').forEach(i => i.value = ''); }
+        function resetAllFields() { if(confirm("مسح الحقول؟")) prepareNew(); }
     </script>
 </body>
 </html>
