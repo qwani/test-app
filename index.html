@@ -86,7 +86,7 @@
         </div>
 
         <div class="table-section">
-            <h4 style="margin-bottom: 10px; color: var(--text-dark);"><i class="fas fa-database"></i> الأرشيف السحابي اللحظي:</h4>
+            <h4 style="margin-bottom: 10px; color: var(--text-dark);"><i class="fas fa-database"></i> الأرشيف (الأحدث أولاً):</h4>
             <div class="table-wrapper">
                 <table>
                     <thead>
@@ -124,18 +124,25 @@
         database.ref('records').on('value', (snapshot) => {
             const body = document.getElementById('autoTableBody');
             body.innerHTML = "";
-            recordsList = [];
+            let tempRecords = [];
             
             if (snapshot.exists()) {
                 snapshot.forEach((child) => {
                     const data = child.val();
-                    recordsList.push(data);
+                    data.dbKey = child.key; // حفظ المفتاح للحذف
+                    tempRecords.push(data);
+                });
+
+                // عكس المصفوفة ليكون الأحدث أولاً
+                recordsList = tempRecords.reverse();
+
+                recordsList.forEach((row) => {
                     body.innerHTML += `
                         <tr>
-                            <td style="font-weight:bold;">${data.name}</td>
-                            <td>${data.city || '-'}</td>
-                            <td style="font-size:10px;">${data.updatedAt ? data.updatedAt.split(',')[0] : '-'}</td>
-                            <td><button class="delete-btn" onclick="deleteRecord('${child.key}')"><i class="fas fa-minus-circle"></i></button></td>
+                            <td style="font-weight:bold; color:#2c3e50;">${row.name}</td>
+                            <td>${row.city || '-'}</td>
+                            <td style="font-size:10px;">${row.updatedAt ? row.updatedAt.split(',')[0] : '-'}</td>
+                            <td><button class="delete-btn" onclick="deleteRecord('${row.dbKey}')"><i class="fas fa-minus-circle"></i></button></td>
                         </tr>
                     `;
                 });
@@ -144,7 +151,7 @@
         });
 
         function updateNavUI() {
-            document.getElementById('navCounter').innerText = `السجل: ${recordsList.length > 0 ? cursor + 1 : 0} من ${recordsList.length}`;
+            document.getElementById('navCounter').innerText = `السجل الحالي: ${recordsList.length > 0 ? cursor + 1 : 0} من ${recordsList.length}`;
             document.getElementById('prevBtn').disabled = cursor <= 0;
             document.getElementById('nextBtn').disabled = cursor >= recordsList.length - 1;
         }
@@ -156,6 +163,11 @@
             if (cursor >= recordsList.length) cursor = recordsList.length - 1;
             
             const item = recordsList[cursor];
+            fillForm(item);
+            updateNavUI();
+        }
+
+        function fillForm(item) {
             document.getElementById('name').value = item.name || '';
             document.getElementById('family').value = item.family || '';
             document.getElementById('age').value = item.age || '';
@@ -163,7 +175,6 @@
             document.getElementById('weight').value = item.weight || '';
             document.getElementById('city').value = item.city || '';
             document.getElementById('terms').value = item.terms || '';
-            updateNavUI();
         }
 
         function saveToCloud() {
@@ -176,17 +187,23 @@
                 terms: document.getElementById('terms').value, updatedAt: new Date().toLocaleString('ar-SA')
             };
             database.ref('records/' + name.replace(/\s/g, '_')).set(data)
-                .then(() => alert("تم الحفظ بنجاح")).catch(e => alert("خطأ في القواعد: " + e.message));
+                .then(() => {
+                    alert("تم الحفظ بنجاح!");
+                    cursor = 0; // توجيه المؤشر لأول سجل (الأحدث)
+                }).catch(e => alert(e.message));
         }
 
         function deleteRecord(key) {
-            if(confirm("حذف السجل؟")) database.ref('records/' + key).remove();
+            if(confirm("حذف السجل نهائياً؟")) {
+                database.ref('records/' + key).remove();
+                cursor = -1;
+            }
         }
 
         function loadFromCloud() {
             const name = document.getElementById('name').value.trim();
             const idx = recordsList.findIndex(r => r.name === name);
-            if(idx !== -1) { cursor = idx; navigate(0); alert("تمت المزامنة"); }
+            if(idx !== -1) { cursor = idx; navigate(0); alert("تم جلب البيانات"); }
             else alert("غير موجود");
         }
 
