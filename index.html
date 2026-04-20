@@ -4,94 +4,154 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام المحيط - ماجد القويعاني</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
     <style>
-        :root{--b:#a2d2ff;--g:rgba(255,255,255,.9)}
-        body{margin:0;padding:15px;font-family:sans-serif;background:#fff;display:flex;flex-direction:column;align-items:center;min-height:100vh;overflow-x:hidden}
-        .ocean{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,#fff 0%,#fbc2eb 50%,var(--b) 100%);z-index:-1}
-        .wave{background:url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/85486/wave.svg') repeat-x;position:absolute;bottom:-20px;width:6400px;height:200px;animation:w 20s linear infinite;opacity:.3}
-        @keyframes w{to{transform:translateX(-1600px)}}
-        .box{background:var(--g);backdrop-filter:blur(15px);border-radius:25px;padding:20px;width:95%;max-width:550px;box-shadow:0 15px 35px rgba(0,0,0,.1);z-index:1}
-        .grid{display:grid;gap:8px}
-        input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;outline:none;box-sizing:border-box}
-        .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
-        .bar{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:15px 0}
-        .btn{background:#fff;border:none;padding:8px 2px;border-radius:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;font-size:9px;font-weight:bold;transition:.2s}
-        .btn:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(0,0,0,.1)}
-        .btn i{font-size:14px;margin-bottom:3px}
-        .wrap{max-height:300px;overflow-y:auto;border-radius:10px;background:rgba(255,255,255,.5);margin-top:15px}
-        table{width:100%;border-collapse:collapse;font-size:11px}
-        th,td{padding:10px 5px;text-align:center;border-bottom:1px solid #eee}
-        th{background:var(--b);color:#fff;position:sticky;top:0}
-        .info{text-align:center;font-size:10px;color:#666}
+        :root { --blue: #a2d2ff; --glass: rgba(255, 255, 255, 0.9); }
+        
+        body { margin: 0; padding: 15px; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+        
+        /* إعادة تفعيل خلفية المحيط والأمواج */
+        .ocean { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, #fff 0%, #fbc2eb 50%, var(--blue) 100%); z-index: -1; }
+        .wave { background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/85486/wave.svg') repeat-x; position: absolute; bottom: -20px; width: 6400px; height: 190px; animation: wave-anim 20s linear infinite; opacity: 0.3; }
+        .wave:nth-of-type(2) { bottom: -10px; animation: wave-anim 15s linear reverse infinite; opacity: 0.2; }
+        @keyframes wave-anim { from { transform: translateX(0); } to { transform: translateX(-1600px); } }
+
+        .container { background: var(--glass); backdrop-filter: blur(15px); border-radius: 25px; padding: 20px; width: 95%; max-width: 550px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); z-index: 1; border: 1px solid rgba(255,255,255,0.4); }
+        
+        .form-grid { display: grid; gap: 8px; }
+        input, textarea { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; outline: none; box-sizing: border-box; background: rgba(255,255,255,0.7); }
+        .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        
+        .toolbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 15px 0; }
+        .btn { background: #fff; border: none; padding: 8px 2px; border-radius: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: bold; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .btn i { font-size: 15px; margin-bottom: 3px; }
+
+        .table-wrap { max-height: 300px; overflow-y: auto; border-radius: 12px; background: rgba(255,255,255,0.5); margin-top: 15px; border: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th, td { padding: 10px 5px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background: var(--blue); color: #fff; position: sticky; top: 0; }
+        
+        .status { text-align: center; font-size: 11px; color: #555; font-weight: bold; margin-top: 5px; }
     </style>
 </head>
 <body>
-    <div class="ocean"><div class="wave"></div></div>
-    <div class="box">
-        <h4 style="text-align:center;margin:0 0 15px">إدارة السجلات السحابية</h4>
-        <div class="grid" id="f">
-            <input id="n" placeholder="الاسم">
-            <div class="row3"><input id="a" type="number" placeholder="عمر"><input id="h" type="number" placeholder="طول"><input id="w" type="number" placeholder="وزن"></div>
-            <input id="l" placeholder="العائلة">
+
+    <div class="ocean">
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+
+    <div class="container">
+        <h3 style="text-align: center; margin: 0 0 15px; color: #2c3e50;">نظام المحيط السحابي</h3>
+        
+        <div class="form-grid" id="mainForm">
+            <input id="n" placeholder="الاسم الكامل">
+            <div class="row3">
+                <input id="a" type="number" placeholder="العمر">
+                <input id="h" type="number" placeholder="الطول">
+                <input id="w" type="number" placeholder="الوزن">
+            </div>
+            <input id="l" placeholder="اسم العائلة">
             <input id="c" placeholder="المدينة">
-            <textarea id="t" rows="2" placeholder="ملاحظات"></textarea>
+            <textarea id="t" rows="2" placeholder="ملاحظات إضافية"></textarea>
         </div>
-        <div class="bar">
-            <button class="btn" onclick="nav(-1)"><i class="fas fa-arrow-right"></i>السابق</button>
-            <button class="btn" style="color:green" onclick="save()"><i class="fas fa-save"></i>حفظ</button>
-            <button class="btn" style="color:purple" onclick="clr()"><i class="fas fa-plus"></i>جديد</button>
-            <button class="btn" onclick="nav(1)"><i class="fas fa-arrow-left"></i>التالي</button>
-            <button class="btn" style="color:orange" onclick="clr()"><i class="fas fa-eraser"></i>مسح</button>
-            <button class="btn" onclick="window.print()"><i class="fas fa-print"></i>طباعة</button>
-            <button class="btn" style="color:red" onclick="gen()"><i class="fas fa-magic"></i>توليد</button>
-            <button class="btn" style="color:#c0392b" onclick="delA()"><i class="fas fa-broom"></i>تفريغ</button>
+
+        <div class="toolbar">
+            <button class="btn" onclick="nav(-1)"><i class="fas fa-chevron-right"></i><span>السابق</span></button>
+            <button class="btn" style="color: #2ecc71" onclick="save()"><i class="fas fa-save"></i><span>حفظ</span></button>
+            <button class="btn" style="color: #9b59b6" onclick="clr()"><i class="fas fa-plus"></i><span>جديد</span></button>
+            <button class="btn" onclick="nav(1)"><i class="fas fa-chevron-left"></i><span>التالي</span></button>
+            
+            <button class="btn" style="color: #e67e22" onclick="clr()"><i class="fas fa-eraser"></i><span>مسح</span></button>
+            <button class="btn" style="color: #34495e" onclick="window.print()"><i class="fas fa-print"></i><span>طباعة</span></button>
+            <button class="btn" style="color: #e74c3c" onclick="gen()"><i class="fas fa-magic"></i><span>توليد</span></button>
+            <button class="btn" style="color: #c0392b" onclick="delAll()"><i class="fas fa-broom"></i><span>تفريغ</span></button>
         </div>
-        <div class="info" id="st">السجلات: 0</div>
-        <div class="wrap"><table><thead><tr><th>الاسم</th><th>المدينة</th><th>إجراء</th></tr></thead><tbody id="tb"></tbody></table></div>
-        <p style="font-size:9px;text-align:center;color:#999">المبرمج: ماجد القويعاني</p>
+
+        <div class="status" id="stat">جاري التحميل...</div>
+
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>الاسم</th><th>المدينة</th><th>حذف</th></tr></thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+        
+        <p style="font-size: 10px; text-align: center; color: #7f8c8d; margin-top: 15px;">
+            المطور: <b>ماجد القويعاني</b>
+        </p>
     </div>
 
     <script>
-        const conf={apiKey:"AIzaSyCCU7ngPz4swM0jRDpmQ8GS9bMgp2Kh1IU",databaseURL:"https://oceanproject-a02aa-default-rtdb.firebaseio.com/"};
-        firebase.initializeApp(conf);const db=firebase.database();let list=[],idx=-1;
-        const G=id=>document.getElementById(id);
+        const cfg = { apiKey: "AIzaSyCCU7ngPz4swM0jRDpmQ8GS9bMgp2Kh1IU", databaseURL: "https://oceanproject-a02aa-default-rtdb.firebaseio.com" };
+        firebase.initializeApp(cfg);
+        const db = firebase.database();
+        let list = [], cursor = -1;
 
-        db.ref('records').on('value',s=>{
-            G('tb').innerHTML="";list=[];
-            s.forEach(c=>{let d=c.val();d.k=c.key;list.push(d)});
-            list.reverse().forEach(r=>{
-                G('tb').innerHTML+=`<tr><td>${r.n}</td><td>${r.c}</td><td><i class="fas fa-trash" style="color:red;cursor:pointer" onclick="del('${r.k}')"></i></td></tr>`;
+        // استماع لحظي للبيانات
+        db.ref('records').on('value', s => {
+            const b = document.getElementById('tbody');
+            b.innerHTML = ""; list = [];
+            s.forEach(c => { let d = c.val(); d.k = c.key; list.push(d); });
+            list.reverse().forEach(r => {
+                b.innerHTML += `<tr><td>${r.n}</td><td>${r.c || '-'}</td><td><i class="fas fa-trash-alt" style="color:#e74c3c;cursor:pointer" onclick="delOne('${r.k}')"></i></td></tr>`;
             });
-            G('st').innerText=`السجلات: ${list.length}`;
+            document.getElementById('stat').innerText = `إجمالي السجلات: ${list.length}`;
         });
 
-        function save(){
-            if(!G('n').value)return;
-            let k="M_"+Date.now();
-            db.ref('records/'+k).set({n:G('n').value,a:G('a').value,h:G('h').value,w:G('w').value,l:G('l').value,c:G('c').value,t:G('t').value,is:false});
-            clr();
+        function save() {
+            const name = document.getElementById('n').value;
+            if(!name) return alert("يرجى كتابة الاسم");
+            const key = "M_" + Date.now();
+            db.ref('records/' + key).set({
+                n: name, a: document.getElementById('a').value, h: document.getElementById('h').value,
+                w: document.getElementById('w').value, l: document.getElementById('l').value,
+                c: document.getElementById('c').value, t: document.getElementById('t').value,
+                isAuto: false, dt: new Date().toLocaleString('ar-SA')
+            }).then(() => { alert("تم الحفظ"); clr(); });
         }
 
-        function nav(s){
-            idx=Math.min(Math.max(idx+s,0),list.length-1);
-            let d=list[idx];G('n').value=d.n;G('a').value=d.a;G('h').value=d.h;G('w').value=d.w;G('l').value=d.l;G('c').value=d.c;G('t').value=d.t;
+        function nav(dir) {
+            if(list.length === 0) return;
+            cursor = Math.min(Math.max(cursor + dir, 0), list.length - 1);
+            const d = list[cursor];
+            document.getElementById('n').value = d.n || '';
+            document.getElementById('a').value = d.a || '';
+            document.getElementById('h').value = d.h || '';
+            document.getElementById('w').value = d.w || '';
+            document.getElementById('l').value = d.l || '';
+            document.getElementById('c').value = d.c || '';
+            document.getElementById('t').value = d.t || '';
+            document.getElementById('stat').innerText = `السجل الحالي: ${cursor + 1} من ${list.length}`;
         }
 
-        function gen(){
-            if(!confirm("توليد 1000؟"))return;let u={};
-            for(let i=0;i<1000;i++){
-                let k="A_"+Date.now()+"_"+i;
-                u['/records/'+k]={n:"مستخدم آلي "+i,c:"تبوك",a:25,h:170,w:70,l:"القويعاني",t:"تلقائي",is:true};
+        function gen() {
+            if(!confirm("توليد 1000 سجل عشوائي؟")) return;
+            let u = {};
+            for(let i=0; i<1000; i++) {
+                let k = "A_" + Date.now() + "_" + i;
+                u['/records/' + k] = { n: "سجل آلي " + (i+1), c: "تبوك", a: 30, h: 175, w: 75, l: "تلقائي", t: "بيانات تجريبية", isAuto: true, dt: new Date().toLocaleString('ar-SA') };
             }
-            db.ref().update(u);
+            db.ref().update(u).then(() => alert("تم التوليد"));
         }
 
-        function delA(){if(confirm("تفريغ؟"))db.ref('records').once('value',s=>{let u={};s.forEach(c=>{if(c.val().is)u[c.key]=null});db.ref('records').update(u)})};
-        function del(k){if(confirm("حذف؟"))db.ref('records/'+k).remove()}
-        function clr(){idx=-1;G('f').querySelectorAll('input,textarea').forEach(i=>i.value="")}
+        function delAll() {
+            if(!confirm("حذف كافة السجلات المولدة آلياً؟")) return;
+            db.ref('records').once('value', s => {
+                let u = {};
+                s.forEach(c => { if(c.val().isAuto) u[c.key] = null; });
+                db.ref('records').update(u);
+            });
+        }
+
+        function delOne(k) { if(confirm("حذف السجل؟")) db.ref('records/' + k).remove(); }
+        function clr() { cursor = -1; document.querySelectorAll('input, textarea').forEach(i => i.value = ""); }
     </script>
 </body>
 </html>
