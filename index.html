@@ -2,64 +2,93 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>نظام المحيط - ماجد القويعاني</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <style>
-        :root { --blue: #a2d2ff; --glass: rgba(255, 255, 255, 0.9); }
+        :root { --blue: #a2d2ff; --glass: rgba(255, 255, 255, 0.95); }
         
-        body { margin: 0; padding: 15px; font-family: 'Segoe UI', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+        /* تحسينات عامة للجوال */
+        body { 
+            margin: 0; padding: 10px; font-family: 'Segoe UI', sans-serif; 
+            min-height: 100vh; display: flex; flex-direction: column; 
+            align-items: center; background: #f0f2f5;
+        }
         
-        /* إعادة تفعيل خلفية المحيط والأمواج */
-        .ocean { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, #fff 0%, #fbc2eb 50%, var(--blue) 100%); z-index: -1; }
-        .wave { background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/85486/wave.svg') repeat-x; position: absolute; bottom: -20px; width: 6400px; height: 190px; animation: wave-anim 20s linear infinite; opacity: 0.3; }
-        .wave:nth-of-type(2) { bottom: -10px; animation: wave-anim 15s linear reverse infinite; opacity: 0.2; }
-        @keyframes wave-anim { from { transform: translateX(0); } to { transform: translateX(-1600px); } }
+        .ocean { position: fixed; top:0; left:0; width:100%; height:100%; background: linear-gradient(180deg, #fff 0%, var(--blue) 100%); z-index: -1; }
+        
+        .container { 
+            background: var(--glass); backdrop-filter: blur(10px); 
+            border-radius: 20px; padding: 15px; width: 100%; 
+            max-width: 500px; box-sizing: border-box; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1;
+        }
 
-        .container { background: var(--glass); backdrop-filter: blur(15px); border-radius: 25px; padding: 20px; width: 95%; max-width: 550px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); z-index: 1; border: 1px solid rgba(255,255,255,0.4); }
+        .form-grid { display: grid; gap: 12px; }
         
-        .form-grid { display: grid; gap: 8px; }
-        input, textarea { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; outline: none; box-sizing: border-box; background: rgba(255,255,255,0.7); }
-        .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        /* تكبير الحقول للمس */
+        input, textarea { 
+            width: 100%; padding: 14px; border-radius: 12px; 
+            border: 1px solid #ddd; font-size: 16px; /* منع الزووم التلقائي في آيفون */
+            box-sizing: border-box; background: #fff;
+        }
         
-        .toolbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 15px 0; }
-        .btn { background: #fff; border: none; padding: 8px 2px; border-radius: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: bold; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .btn i { font-size: 15px; margin-bottom: 3px; }
+        .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        
+        /* تحسين شريط الأدوات للجوال */
+        .toolbar { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 10px; margin: 20px 0; 
+        }
+        
+        .btn { 
+            background: #fff; border: 1px solid #eee; padding: 12px 5px; 
+            border-radius: 15px; cursor: pointer; display: flex; 
+            flex-direction: column; align-items: center; 
+            transition: 0.2s; -webkit-tap-highlight-color: transparent;
+        }
+        
+        .btn i { font-size: 18px; margin-bottom: 5px; }
+        .btn span { font-size: 10px; font-weight: bold; white-space: nowrap; }
 
-        .table-wrap { max-height: 300px; overflow-y: auto; border-radius: 12px; background: rgba(255,255,255,0.5); margin-top: 15px; border: 1px solid #eee; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        th, td { padding: 10px 5px; text-align: center; border-bottom: 1px solid #eee; }
-        th { background: var(--blue); color: #fff; position: sticky; top: 0; }
+        /* تحسين الجدول للعرض الصغير */
+        .table-wrap { 
+            max-height: 250px; overflow-y: auto; border-radius: 12px; 
+            background: #fff; margin-top: 15px; border: 1px solid #eee;
+        }
         
-        .status { text-align: center; font-size: 11px; color: #555; font-weight: bold; margin-top: 5px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #f5f5f5; }
+        th { background: #f8f9fa; position: sticky; top: 0; color: #333; }
+
+        .status { text-align: center; font-size: 12px; color: #666; margin: 10px 0; font-weight: 600; }
+
+        /* اخفاء بعض العناصر عند الطباعة من الجوال */
+        @media print { .toolbar, .ocean { display: none; } }
     </style>
 </head>
 <body>
 
-    <div class="ocean">
-        <div class="wave"></div>
-        <div class="wave"></div>
-    </div>
+    <div class="ocean"></div>
 
     <div class="container">
-        <h3 style="text-align: center; margin: 0 0 15px; color: #2c3e50;">نظام المحيط السحابي</h3>
+        <h3 style="text-align: center; margin: 0 0 15px; color: #2c3e50;">نظام المحيط - جوال</h3>
         
-        <div class="form-grid" id="mainForm">
-            <input id="n" placeholder="الاسم الكامل">
+        <div class="form-grid">
+            <input id="n" type="text" placeholder="الاسم الكامل">
             <div class="row3">
                 <input id="a" type="number" placeholder="العمر">
                 <input id="h" type="number" placeholder="الطول">
                 <input id="w" type="number" placeholder="الوزن">
             </div>
-            <input id="l" placeholder="اسم العائلة">
-            <input id="c" placeholder="المدينة">
-            <textarea id="t" rows="2" placeholder="ملاحظات إضافية"></textarea>
+            <input id="l" type="text" placeholder="العائلة">
+            <input id="c" type="text" placeholder="المدينة">
+            <textarea id="t" rows="2" placeholder="ملاحظات"></textarea>
         </div>
 
         <div class="toolbar">
@@ -74,7 +103,7 @@
             <button class="btn" style="color: #c0392b" onclick="delAll()"><i class="fas fa-broom"></i><span>تفريغ</span></button>
         </div>
 
-        <div class="status" id="stat">جاري التحميل...</div>
+        <div class="status" id="stat">جاري المزامنة...</div>
 
         <div class="table-wrap">
             <table>
@@ -83,8 +112,8 @@
             </table>
         </div>
         
-        <p style="font-size: 10px; text-align: center; color: #7f8c8d; margin-top: 15px;">
-            المطور: <b>ماجد القويعاني</b>
+        <p style="font-size: 11px; text-align: center; color: #bdc3c7; margin-top: 15px;">
+            تطوير: ماجد القويعاني
         </p>
     </div>
 
@@ -94,55 +123,54 @@
         const db = firebase.database();
         let list = [], cursor = -1;
 
-        // استماع لحظي للبيانات
         db.ref('records').on('value', s => {
             const b = document.getElementById('tbody');
             b.innerHTML = ""; list = [];
             s.forEach(c => { let d = c.val(); d.k = c.key; list.push(d); });
             list.reverse().forEach(r => {
-                b.innerHTML += `<tr><td>${r.n}</td><td>${r.c || '-'}</td><td><i class="fas fa-trash-alt" style="color:#e74c3c;cursor:pointer" onclick="delOne('${r.k}')"></i></td></tr>`;
+                b.innerHTML += `<tr><td>${r.n}</td><td>${r.c || '-'}</td><td><i class="fas fa-trash" style="color:#e74c3c;padding:5px" onclick="delOne('${r.k}')"></i></td></tr>`;
             });
-            document.getElementById('stat').innerText = `إجمالي السجلات: ${list.length}`;
+            document.getElementById('stat').innerText = `السجلات: ${list.length}`;
         });
 
         function save() {
-            const name = document.getElementById('n').value;
-            if(!name) return alert("يرجى كتابة الاسم");
-            const key = "M_" + Date.now();
-            db.ref('records/' + key).set({
-                n: name, a: document.getElementById('a').value, h: document.getElementById('h').value,
-                w: document.getElementById('w').value, l: document.getElementById('l').value,
-                c: document.getElementById('c').value, t: document.getElementById('t').value,
-                isAuto: false, dt: new Date().toLocaleString('ar-SA')
-            }).then(() => { alert("تم الحفظ"); clr(); });
+            const n = document.getElementById('n').value;
+            if(!n) return alert("اكتب الاسم");
+            db.ref('records/M_'+Date.now()).set({
+                n, a:document.getElementById('a').value, h:document.getElementById('h').value,
+                w:document.getElementById('w').value, l:document.getElementById('l').value,
+                c:document.getElementById('c').value, t:document.getElementById('t').value,
+                isAuto: false
+            });
+            clr();
         }
 
         function nav(dir) {
-            if(list.length === 0) return;
+            if(!list.length) return;
             cursor = Math.min(Math.max(cursor + dir, 0), list.length - 1);
             const d = list[cursor];
-            document.getElementById('n').value = d.n || '';
-            document.getElementById('a').value = d.a || '';
-            document.getElementById('h').value = d.h || '';
-            document.getElementById('w').value = d.w || '';
-            document.getElementById('l').value = d.l || '';
-            document.getElementById('c').value = d.c || '';
-            document.getElementById('t').value = d.t || '';
-            document.getElementById('stat').innerText = `السجل الحالي: ${cursor + 1} من ${list.length}`;
+            document.getElementById('n').value = d.n;
+            document.getElementById('a').value = d.a;
+            document.getElementById('h').value = d.h;
+            document.getElementById('w').value = d.w;
+            document.getElementById('l').value = d.l;
+            document.getElementById('c').value = d.c;
+            document.getElementById('t').value = d.t;
+            document.getElementById('stat').innerText = `عرض: ${cursor+1} من ${list.length}`;
         }
 
         function gen() {
-            if(!confirm("توليد 1000 سجل عشوائي؟")) return;
+            if(!confirm("توليد 1000 سجل؟")) return;
             let u = {};
             for(let i=0; i<1000; i++) {
                 let k = "A_" + Date.now() + "_" + i;
-                u['/records/' + k] = { n: "سجل آلي " + (i+1), c: "تبوك", a: 30, h: 175, w: 75, l: "تلقائي", t: "بيانات تجريبية", isAuto: true, dt: new Date().toLocaleString('ar-SA') };
+                u['/records/' + k] = { n: "تجربة " + (i+1), c: "تبوك", a: 20, isAuto: true };
             }
-            db.ref().update(u).then(() => alert("تم التوليد"));
+            db.ref().update(u);
         }
 
         function delAll() {
-            if(!confirm("حذف كافة السجلات المولدة آلياً؟")) return;
+            if(!confirm("حذف التلقائي؟")) return;
             db.ref('records').once('value', s => {
                 let u = {};
                 s.forEach(c => { if(c.val().isAuto) u[c.key] = null; });
@@ -150,7 +178,7 @@
             });
         }
 
-        function delOne(k) { if(confirm("حذف السجل؟")) db.ref('records/' + k).remove(); }
+        function delOne(k) { if(confirm("حذف؟")) db.ref('records/'+k).remove(); }
         function clr() { cursor = -1; document.querySelectorAll('input, textarea').forEach(i => i.value = ""); }
     </script>
 </body>
