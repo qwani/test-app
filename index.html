@@ -14,6 +14,211 @@
             --glass-bg: rgba(255, 255, 255, 0.9);
             --text-dark: #2c3e50;
             --ocean-blue: #a2d2ff;
+        }
+
+        body { margin: 0; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; font-family: 'Segoe UI', Tahoma, sans-serif; background: #fff; overflow-x: hidden; }
+        .ocean { height: 100%; width: 100%; position: fixed; bottom: 0; left: 0; background: linear-gradient(180deg, #ffffff 0%, #fbc2eb 50%, var(--ocean-blue) 100%); z-index: -1; }
+        .wave { background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/85486/wave.svg') repeat-x; position: absolute; bottom: -20px; width: 6400px; height: 280px; animation: wave-move 20s linear infinite; opacity: 0.3; }
+        @keyframes wave-move { 0% { transform: translateX(0); } 100% { transform: translateX(-1600px); } }
+
+        .glass-container { background: var(--glass-bg); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; width: 95%; max-width: 600px; border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 10; margin-bottom: 50px; }
+
+        .form-grid { display: grid; gap: 10px; }
+        input, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #eee; background: rgba(255,255,255,0.8); box-sizing: border-box; font-family: inherit; outline: none; }
+        .multi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+        .toolbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; }
+        
+        .btn { background: #fff; border: none; padding: 10px 5px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .btn i { font-size: 16px; margin-bottom: 4px; }
+        .btn span { font-size: 9px; font-weight: bold; }
+
+        .nav-info { text-align: center; font-size: 11px; margin-top: 12px; color: #7f8c8d; font-weight: bold; }
+
+        .table-section { margin-top: 25px; border-top: 2px solid rgba(0,0,0,0.05); padding-top: 20px; }
+        .table-wrapper { width: 100%; max-height: 400px; overflow-y: auto; border-radius: 15px; background: rgba(255,255,255,0.5); }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 450px; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        th { background-color: var(--ocean-blue); color: white; position: sticky; top: 0; }
+        
+        .copyright { margin-top: 15px; text-align: center; color: #7f8c8d; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+    <div class="ocean"><div class="wave"></div><div class="wave"></div></div>
+
+    <div class="glass-container">
+        <h3 style="text-align: center; margin-bottom: 15px; color: var(--text-dark);">نظام المحيط لإدارة السجلات</h3>
+        
+        <div class="form-grid">
+            <input type="text" id="name" placeholder="الاسم الكامل">
+            <div class="multi-row">
+                <input type="number" id="age" placeholder="العمر">
+                <input type="number" id="height" placeholder="الطول">
+                <input type="number" id="weight" placeholder="الوزن">
+            </div>
+            <input type="text" id="family" placeholder="العائلة">
+            <input type="text" id="city" placeholder="المدينة">
+            <textarea id="terms" rows="2" placeholder="ملاحظات إضافية"></textarea>
+        </div>
+
+        <div class="toolbar">
+            <button class="btn" onclick="navigate(-1)"><i class="fas fa-arrow-right"></i><span>السابق</span></button>
+            <button class="btn" style="color: #2ecc71;" onclick="saveToCloud()"><i class="fas fa-save"></i><span>حفظ</span></button>
+            <button class="btn" style="color: #9b59b6;" onclick="prepareNew()"><i class="fas fa-plus"></i><span>جديد</span></button>
+            <button class="btn" onclick="navigate(1)"><i class="fas fa-arrow-left"></i><span>التالي</span></button>
+            
+            <button class="btn" style="color: #e67e22;" onclick="clearInputs()"><i class="fas fa-eraser"></i><span>مسح</span></button>
+            <button class="btn" style="color: #2c3e50;" onclick="window.print()"><i class="fas fa-print"></i><span>طباعة</span></button>
+            <button class="btn" style="color: #3498db;" onclick="location.reload()"><i class="fas fa-sync"></i><span>تحديث الموقع</span></button>
+            <button class="btn" style="color: #e74c3c;" onclick="generateUniqueBulkData()"><i class="fas fa-magic"></i><span>توليد (1000)</span></button>
+        </div>
+        
+        <div class="nav-info" id="navCounter">السجلات: 0 / 0</div>
+
+        <div class="copyright">تطوير المبرمج: <b>ماجد القويعاني</b></div>
+
+        <div class="table-section">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>المدينة</th>
+                            <th>التاريخ</th>
+                            <th>إجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="autoTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCCU7ngPz4swM0jRDpmQ8GS9bMgp2Kh1IU",
+            authDomain: "oceanproject-a02aa.firebaseapp.com",
+            databaseURL: "https://oceanproject-a02aa-default-rtdb.firebaseio.com",
+            projectId: "oceanproject-a02aa",
+            storageBucket: "oceanproject-a02aa.firebasestorage.app",
+            messagingSenderId: "108495702627",
+            appId: "1:108495702627:web:863e986e0a3eceac620656"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        let recordsList = [];
+        let cursor = -1;
+
+        database.ref('records').on('value', (snapshot) => {
+            const body = document.getElementById('autoTableBody');
+            body.innerHTML = "";
+            let temp = [];
+            snapshot.forEach((child) => {
+                let d = child.val();
+                d.dbKey = child.key;
+                temp.push(d);
+            });
+            recordsList = temp.reverse();
+            recordsList.forEach(row => {
+                body.innerHTML += `<tr><td>${row.name}</td><td>${row.city || '-'}</td><td>${row.updatedAt ? row.updatedAt.split(',')[0] : '-'}</td><td><button onclick="deleteRecord('${row.dbKey}')" style="border:none; background:none; color:red; cursor:pointer;"><i class="fas fa-trash"></i></button></td></tr>`;
+            });
+            updateNavUI();
+        });
+
+        function generateUniqueBulkData() {
+            const names = ["محمد", "سلطان", "نورة", "عبدالعزيز", "فهد", "ريم", "خالد", "هيا", "سعد", "فيصل", "سارة", "منصور", "بدر", "أمل"];
+            const families = ["القحطاني", "العتيبي", "الشمري", "الدوسري", "المطيري", "العنزي", "الشهري", "الغامدي", "القويعاني", "الحربي"];
+            const cities = ["تبوك", "الرياض", "جدة", "الدمام", "حائل", "سكاكا", "الخبر", "مكة"];
+
+            if(!confirm("سيتم الآن توليد 1000 سجل فريد بكافة البيانات. قد يستغرق الرفع ثواني...")) return;
+
+            let updates = {};
+            for(let i=0; i<1000; i++) {
+                let fName = names[Math.floor(Math.random() * names.length)];
+                let lName = families[Math.floor(Math.random() * families.length)];
+                let randomID = Math.floor(1000 + Math.random() * 9000); // رقم فريد لمنع تكرار المفتاح
+                let fullName = `${fName} ${lName} (${randomID})`;
+                let key = "ID_" + Date.now() + "_" + i; // مفتاح فريد جداً يعتمد على الوقت
+
+                updates['/records/' + key] = {
+                    name: fullName,
+                    family: lName,
+                    age: Math.floor(Math.random() * 45) + 18,
+                    height: Math.floor(Math.random() * 40) + 150,
+                    weight: Math.floor(Math.random() * 50) + 50,
+                    city: cities[Math.floor(Math.random() * cities.length)],
+                    terms: "سجل آلي تم إنشاؤه بواسطة نظام الاختبار الذكي - رقم " + (i+1),
+                    updatedAt: new Date().toLocaleString('ar-SA')
+                };
+            }
+            
+            database.ref().update(updates).then(() => {
+                alert("تم توليد 1000 سجل فريد بنجاح! راقب الجدول الآن.");
+            }).catch(e => alert("خطأ: " + e.message));
+        }
+
+        function updateNavUI() {
+            document.getElementById('navCounter').innerText = `السجل: ${cursor + 1} من ${recordsList.length}`;
+        }
+
+        function navigate(step) {
+            if(recordsList.length === 0) return;
+            cursor += step;
+            if(cursor < 0) cursor = 0;
+            if(cursor >= recordsList.length) cursor = recordsList.length - 1;
+            
+            const item = recordsList[cursor];
+            document.getElementById('name').value = item.name || '';
+            document.getElementById('family').value = item.family || '';
+            document.getElementById('age').value = item.age || '';
+            document.getElementById('height').value = item.height || '';
+            document.getElementById('weight').value = item.weight || '';
+            document.getElementById('city').value = item.city || '';
+            document.getElementById('terms').value = item.terms || '';
+            updateNavUI();
+        }
+
+        function saveToCloud() {
+            let name = document.getElementById('name').value;
+            if(!name) return alert("اكتب الاسم");
+            let key = name.replace(/\s/g, '_') + "_" + Date.now();
+            database.ref('records/' + key).set({
+                name: name,
+                family: document.getElementById('family').value,
+                age: document.getElementById('age').value,
+                height: document.getElementById('height').value,
+                weight: document.getElementById('weight').value,
+                city: document.getElementById('city').value,
+                terms: document.getElementById('terms').value,
+                updatedAt: new Date().toLocaleString('ar-SA')
+            }).then(() => alert("تم الحفظ"));
+        }
+
+        function deleteRecord(key) { if(confirm("حذف؟")) database.ref('records/' + key).remove(); }
+        function clearInputs() { document.querySelectorAll('input, textarea').forEach(i => i.value = ''); cursor = -1; updateNavUI(); }
+        function prepareNew() { clearInputs(); document.getElementById('name').focus(); }
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام المحيط السحابي - ماجد القويعاني</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --text-dark: #2c3e50;
+            --ocean-blue: #a2d2ff;
             --wave-speed: 20s; 
         }
 
