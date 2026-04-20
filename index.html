@@ -29,23 +29,21 @@
         .multi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
         .toolbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; }
-        @media (min-width: 480px) { .toolbar { grid-template-columns: repeat(7, 1fr); } }
+        @media (min-width: 480px) { .toolbar { grid-template-columns: repeat(4, 1fr); } }
         
         .btn { background: #fff; border: none; padding: 10px 5px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .btn i { font-size: 16px; margin-bottom: 4px; }
         .btn span { font-size: 9px; font-weight: bold; }
 
         .nav-info { text-align: center; font-size: 11px; margin-top: 12px; color: #7f8c8d; font-weight: bold; }
 
         .table-section { margin-top: 25px; border-top: 2px solid rgba(0,0,0,0.05); padding-top: 20px; }
-        .table-wrapper { width: 100%; overflow-x: auto; border-radius: 15px; background: rgba(255,255,255,0.5); }
+        .table-wrapper { width: 100%; max-height: 400px; overflow-y: auto; border-radius: 15px; background: rgba(255,255,255,0.5); }
         table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 450px; }
         th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        th { background-color: var(--ocean-blue); color: white; }
-        .delete-btn { color: #e74c3c; cursor: pointer; border: none; background: none; }
-
+        th { background-color: var(--ocean-blue); color: white; position: sticky; top: 0; }
+        
         .copyright { margin-top: 15px; text-align: center; color: #7f8c8d; font-size: 11px; }
     </style>
 </head>
@@ -69,24 +67,22 @@
         </div>
 
         <div class="toolbar">
-            <button class="btn" id="prevBtn" onclick="navigate(-1)"><i class="fas fa-arrow-right" style="color: #34495e;"></i><span>السابق</span></button>
+            <button class="btn" onclick="navigate(-1)"><i class="fas fa-arrow-right"></i><span>السابق</span></button>
             <button class="btn" style="color: #2ecc71;" onclick="saveToCloud()"><i class="fas fa-save"></i><span>حفظ</span></button>
-            <button class="btn" style="color: #3498db;" onclick="loadFromCloud()"><i class="fas fa-sync"></i><span>مزامنة</span></button>
             <button class="btn" style="color: #9b59b6;" onclick="prepareNew()"><i class="fas fa-plus"></i><span>جديد</span></button>
+            <button class="btn" onclick="navigate(1)"><i class="fas fa-arrow-left"></i><span>التالي</span></button>
+            
             <button class="btn" style="color: #e67e22;" onclick="clearInputs()"><i class="fas fa-eraser"></i><span>مسح</span></button>
             <button class="btn" style="color: #2c3e50;" onclick="window.print()"><i class="fas fa-print"></i><span>طباعة</span></button>
-            <button class="btn" id="nextBtn" onclick="navigate(1)"><i class="fas fa-arrow-left" style="color: #34495e;"></i><span>التالي</span></button>
+            <button class="btn" style="color: #3498db;" onclick="loadFromCloud()"><i class="fas fa-sync"></i><span>مزامنة</span></button>
+            <button class="btn" style="color: #e74c3c;" onclick="generateBulkData()"><i class="fas fa-magic"></i><span>توليد سجلات</span></button>
         </div>
         
         <div class="nav-info" id="navCounter">السجلات: 0 / 0</div>
 
-        <div class="copyright">
-            تطوير المبرمج: <b>ماجد محمد القويعاني</b><br>
-            <small>maged.qwani@gmail.com</small>
-        </div>
+        <div class="copyright">تطوير المبرمج: <b>ماجد محمد القويعاني</b></div>
 
         <div class="table-section">
-            <h4 style="margin-bottom: 10px; color: var(--text-dark);"><i class="fas fa-database"></i> الأرشيف (الأحدث أولاً):</h4>
             <div class="table-wrapper">
                 <table>
                     <thead>
@@ -111,108 +107,84 @@
             projectId: "oceanproject-a02aa",
             storageBucket: "oceanproject-a02aa.firebasestorage.app",
             messagingSenderId: "108495702627",
-            appId: "1:108495702627:web:863e986e0a3eceac620656",
-            measurementId: "G-9NLZ7PG1WR"
+            appId: "1:108495702627:web:863e986e0a3eceac620656"
         };
 
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
-
         let recordsList = [];
         let cursor = -1;
 
         database.ref('records').on('value', (snapshot) => {
             const body = document.getElementById('autoTableBody');
             body.innerHTML = "";
-            let tempRecords = [];
-            
-            if (snapshot.exists()) {
-                snapshot.forEach((child) => {
-                    const data = child.val();
-                    data.dbKey = child.key; // حفظ المفتاح للحذف
-                    tempRecords.push(data);
-                });
-
-                // عكس المصفوفة ليكون الأحدث أولاً
-                recordsList = tempRecords.reverse();
-
-                recordsList.forEach((row) => {
-                    body.innerHTML += `
-                        <tr>
-                            <td style="font-weight:bold; color:#2c3e50;">${row.name}</td>
-                            <td>${row.city || '-'}</td>
-                            <td style="font-size:10px;">${row.updatedAt ? row.updatedAt.split(',')[0] : '-'}</td>
-                            <td><button class="delete-btn" onclick="deleteRecord('${row.dbKey}')"><i class="fas fa-minus-circle"></i></button></td>
-                        </tr>
-                    `;
-                });
-            }
+            let temp = [];
+            snapshot.forEach((child) => {
+                let d = child.val();
+                d.dbKey = child.key;
+                temp.push(d);
+            });
+            recordsList = temp.reverse();
+            recordsList.forEach(row => {
+                body.innerHTML += `<tr><td>${row.name}</td><td>${row.city}</td><td>${row.updatedAt.split(',')[0]}</td><td><button onclick="deleteRecord('${row.dbKey}')" style="border:none; background:none; color:red; cursor:pointer;"><i class="fas fa-trash"></i></button></td></tr>`;
+            });
             updateNavUI();
         });
 
+        function generateBulkData() {
+            const firstNames = ["محمد", "عبدالله", "فهد", "سلطان", "خالد", "سارة", "نورة", "ماجد", "سعد", "فيصل"];
+            const lastNames = ["القحطاني", "العتيبي", "الشمري", "الدوسري", "المطيري", "عسيري", "الجهني", "الحربي", "القويعاني"];
+            const cities = ["تبوك", "الرياض", "جدة", "الدمام", "أبها", "حائل", "المدينة المنورة"];
+
+            if(!confirm("سيتم إضافة 1000 سجل عشوائي الآن، هل أنت متأكد؟")) return;
+
+            let updates = {};
+            for(let i=0; i<1000; i++) {
+                let fName = firstNames[Math.floor(Math.random() * firstNames.length)];
+                let lName = lastNames[Math.floor(Math.random() * lastNames.length)];
+                let fullName = fName + " " + lName + " " + (i+1);
+                let key = fullName.replace(/\s/g, '_');
+                
+                updates['/records/' + key] = {
+                    name: fullName,
+                    city: cities[Math.floor(Math.random() * cities.length)],
+                    age: Math.floor(Math.random() * 50) + 20,
+                    updatedAt: new Date().toLocaleString('ar-SA'),
+                    family: lName,
+                    height: 170, weight: 70, terms: "سجل تجريبي تلقائي"
+                };
+            }
+            database.ref().update(updates).then(() => alert("تم توليد 1000 سجل بنجاح!"));
+        }
+
         function updateNavUI() {
-            document.getElementById('navCounter').innerText = `السجل الحالي: ${recordsList.length > 0 ? cursor + 1 : 0} من ${recordsList.length}`;
-            document.getElementById('prevBtn').disabled = cursor <= 0;
-            document.getElementById('nextBtn').disabled = cursor >= recordsList.length - 1;
+            document.getElementById('navCounter').innerText = `السجل: ${cursor + 1} من ${recordsList.length}`;
         }
 
         function navigate(step) {
-            if (recordsList.length === 0) return;
             cursor += step;
-            if (cursor < 0) cursor = 0;
-            if (cursor >= recordsList.length) cursor = recordsList.length - 1;
-            
-            const item = recordsList[cursor];
-            fillForm(item);
+            if(cursor < 0) cursor = 0;
+            if(cursor >= recordsList.length) cursor = recordsList.length - 1;
+            let item = recordsList[cursor];
+            document.getElementById('name').value = item.name;
+            document.getElementById('city').value = item.city;
+            document.getElementById('age').value = item.age;
             updateNavUI();
         }
 
-        function fillForm(item) {
-            document.getElementById('name').value = item.name || '';
-            document.getElementById('family').value = item.family || '';
-            document.getElementById('age').value = item.age || '';
-            document.getElementById('height').value = item.height || '';
-            document.getElementById('weight').value = item.weight || '';
-            document.getElementById('city').value = item.city || '';
-            document.getElementById('terms').value = item.terms || '';
-        }
-
         function saveToCloud() {
-            const name = document.getElementById('name').value.trim();
-            if(!name) return alert("الاسم مطلوب");
-            const data = {
-                name, family: document.getElementById('family').value,
-                age: document.getElementById('age').value, height: document.getElementById('height').value,
-                weight: document.getElementById('weight').value, city: document.getElementById('city').value,
-                terms: document.getElementById('terms').value, updatedAt: new Date().toLocaleString('ar-SA')
-            };
-            database.ref('records/' + name.replace(/\s/g, '_')).set(data)
-                .then(() => {
-                    alert("تم الحفظ بنجاح!");
-                    cursor = 0; // توجيه المؤشر لأول سجل (الأحدث)
-                }).catch(e => alert(e.message));
+            let name = document.getElementById('name').value;
+            if(!name) return;
+            database.ref('records/' + name.replace(/\s/g, '_')).set({
+                name: name, city: document.getElementById('city').value,
+                age: document.getElementById('age').value, updatedAt: new Date().toLocaleString('ar-SA')
+            });
         }
 
-        function deleteRecord(key) {
-            if(confirm("حذف السجل نهائياً؟")) {
-                database.ref('records/' + key).remove();
-                cursor = -1;
-            }
-        }
-
-        function loadFromCloud() {
-            const name = document.getElementById('name').value.trim();
-            const idx = recordsList.findIndex(r => r.name === name);
-            if(idx !== -1) { cursor = idx; navigate(0); alert("تم جلب البيانات"); }
-            else alert("غير موجود");
-        }
-
-        function clearInputs() { 
-            document.querySelectorAll('input, textarea').forEach(i => i.value = ''); 
-            cursor = -1; updateNavUI();
-        }
-        
-        function prepareNew() { clearInputs(); document.getElementById('name').focus(); }
+        function deleteRecord(key) { database.ref('records/' + key).remove(); }
+        function clearInputs() { document.querySelectorAll('input, textarea').forEach(i => i.value = ''); cursor = -1; }
+        function prepareNew() { clearInputs(); }
+        function loadFromCloud() { alert("المزامنة تلقائية الآن!"); }
     </script>
 </body>
 </html>
