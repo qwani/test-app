@@ -40,39 +40,32 @@
         input, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); background: rgba(255,255,255,0.8); box-sizing: border-box; outline: none; font-size: 14px; }
         .multi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
-        .toolbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
-        .btn { background: #fff; border: none; padding: 10px; border-radius: 15px; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.3s; }
+        /* تعديل شريط الأدوات ليناسب 5 أزرار */
+        .toolbar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
+        .btn { background: #fff; border: none; padding: 10px 5px; border-radius: 15px; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.3s; }
         .btn:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.05); }
-        .btn i { font-size: 18px; margin-bottom: 4px; }
-        .btn span { font-size: 10px; font-weight: bold; }
+        .btn i { font-size: 16px; margin-bottom: 4px; }
+        .btn span { font-size: 9px; font-weight: bold; white-space: nowrap; }
 
-        /* شاشة عرض السجلات المضافة */
         .records-display {
             margin-top: 25px; padding: 15px; background: rgba(255, 255, 255, 0.5);
             border-radius: 20px; border: 1px dashed var(--ocean-blue);
-            display: none; /* تظهر فقط عند وجود بيانات */
+            display: none; 
         }
         .record-card {
             background: white; padding: 12px; border-radius: 12px; margin-bottom: 10px;
             font-size: 13px; border-right: 4px solid var(--ocean-blue); position: relative;
         }
         .record-card h4 { margin: 0 0 5px 0; color: var(--text-dark); }
-        .record-card p { margin: 2px 0; color: #666; font-size: 11px; }
-        .print-mini-btn {
-            position: absolute; left: 10px; top: 10px;
-            background: var(--ocean-blue); color: white; border: none;
-            padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 10px;
-        }
-
+        
         .copyright { margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(0, 0, 0, 0.05); text-align: center; color: #7f8c8d; }
         .dev-name { display: block; font-weight: 600; color: var(--text-dark); font-size: 13px; }
 
         @media print {
-            .ocean, .toolbar, .form-grid, .control-panel, h2, .print-mini-btn, .copyright { display: none !important; }
+            .ocean, .toolbar, .form-grid, .control-panel, h2, .copyright { display: none !important; }
             body { background: white; padding: 0; }
             .glass-container { box-shadow: none; border: none; width: 100%; max-width: none; }
             .records-display { display: block !important; border: none; }
-            .record-card { border: 1px solid #eee; break-inside: avoid; }
         }
 
         .control-panel { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.5); padding: 8px 18px; border-radius: 40px; display: flex; align-items: center; gap: 12px; backdrop-filter: blur(10px); z-index: 100; }
@@ -99,12 +92,13 @@
         <div class="toolbar">
             <button class="btn" style="color: #2ecc71;" onclick="saveToCloud()"><i class="fas fa-save"></i><span>حفظ</span></button>
             <button class="btn" style="color: #3498db;" onclick="loadFromCloud()"><i class="fas fa-sync"></i><span>مزامنة</span></button>
-            <button class="btn" style="color: #e74c3c;" onclick="resetForm()"><i class="fas fa-trash-alt"></i><span>مسح</span></button>
+            <button class="btn" style="color: #9b59b6;" onclick="prepareNewRecord()"><i class="fas fa-user-plus"></i><span>سجل جديد</span></button>
+            <button class="btn" style="color: #e74c3c;" onclick="resetAll()"><i class="fas fa-trash-alt"></i><span>حذف الكل</span></button>
             <button class="btn" style="color: #f1c40f;" onclick="window.print()"><i class="fas fa-print"></i><span>طباعة</span></button>
         </div>
 
         <div id="recordsDisplay" class="records-display">
-            <h5 style="margin: 0 0 10px 0; color: var(--text-dark);"><i class="fas fa-list-ul"></i> السجل الحالي المعاين:</h5>
+            <h5 style="margin: 0 0 10px 0; color: var(--text-dark);"><i class="fas fa-eye"></i> معاينة السجل المحفوظ:</h5>
             <div id="recordContent"></div>
         </div>
 
@@ -140,12 +134,11 @@
             displayArea.style.display = 'block';
             content.innerHTML = `
                 <div class="record-card">
-                    <button class="print-mini-btn" onclick="window.print()">طباعة هذا السجل</button>
                     <h4>${data.name} ${data.family}</h4>
                     <p><b>العمر:</b> ${data.age} | <b>الطول:</b> ${data.height} | <b>الوزن:</b> ${data.weight}</p>
                     <p><b>المدينة:</b> ${data.city}</p>
                     <p><b>ملاحظات:</b> ${data.terms}</p>
-                    <p style="font-size:9px; color:#aaa; margin-top:5px;">تاريخ السجل: ${new Date(data.updatedAt).toLocaleString('ar-SA')}</p>
+                    <p style="font-size:9px; color:#aaa; margin-top:5px;">تم التحديث: ${new Date(data.updatedAt).toLocaleString('ar-SA')}</p>
                 </div>
             `;
         }
@@ -167,10 +160,17 @@
 
             database.ref('records/' + name.replace(/\s/g, '_')).set(userData)
                 .then(() => {
-                    alert("تم الحفظ سحابياً");
+                    alert("تم الحفظ بنجاح");
                     displayRecord(userData);
                 })
                 .catch(err => alert("خطأ: " + err.message));
+        }
+
+        // الوظيفة الجديدة: تفريغ الحقول لسجل جديد مع بقاء المعاينة
+        function prepareNewRecord() {
+            document.querySelectorAll('input, textarea').forEach(i => i.value = '');
+            // نترك شاشة المعاينة ظاهرة كما هي ليعرف المستخدم ماذا حفظ آخر مرة
+            document.getElementById('name').focus(); // وضع المؤشر على حقل الاسم فوراً
         }
 
         function loadFromCloud() {
@@ -188,14 +188,16 @@
                     document.getElementById('terms').value = data.terms;
                     displayRecord(data);
                 } else {
-                    alert("لا يوجد سجل بهذا الاسم");
+                    alert("لا يوجد سجل");
                 }
             });
         }
 
-        function resetForm() {
-            document.querySelectorAll('input, textarea').forEach(i=>i.value='');
-            document.getElementById('recordsDisplay').style.display = 'none';
+        function resetAll() {
+            if(confirm("سيتم مسح الحقول وشاشة المعاينة، هل أنت متأكد؟")) {
+                document.querySelectorAll('input, textarea').forEach(i => i.value = '');
+                document.getElementById('recordsDisplay').style.display = 'none';
+            }
         }
 
         const range = document.getElementById('speedRange');
