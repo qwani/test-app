@@ -17,17 +17,22 @@
             --wave-speed: 20s; 
         }
 
-        body { margin: 0; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; font-family: 'Segoe UI', sans-serif; background: #fff; overflow-x: hidden; }
+        body { margin: 0; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; font-family: 'Segoe UI', Tahoma, sans-serif; background: #fff; overflow-x: hidden; }
+        
+        /* الخلفية المتحركة */
         .ocean { height: 100%; width: 100%; position: fixed; bottom: 0; left: 0; background: linear-gradient(180deg, #ffffff 0%, #fbc2eb 50%, var(--ocean-blue) 100%); z-index: -1; }
         .wave { background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/85486/wave.svg') repeat-x; position: absolute; bottom: -20px; width: 6400px; height: 280px; animation: wave-move var(--wave-speed) linear infinite; opacity: 0.3; }
         @keyframes wave-move { 0% { transform: translateX(0); } 100% { transform: translateX(-1600px); } }
 
+        /* الإطار الزجاجي */
         .glass-container { background: var(--glass-bg); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; width: 95%; max-width: 600px; border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 20px 40px rgba(0,0,0,0.1); z-index: 10; margin-bottom: 50px; }
 
         .form-grid { display: grid; gap: 10px; }
-        input, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #eee; background: rgba(255,255,255,0.8); box-sizing: border-box; font-family: inherit; outline: none; }
+        input, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #eee; background: rgba(255,255,255,0.8); box-sizing: border-box; font-family: inherit; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--ocean-blue); box-shadow: 0 0 8px rgba(162, 210, 255, 0.5); }
         .multi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
+        /* شريط الأدوات */
         .toolbar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 15px; margin-bottom: 20px; }
         @media (min-width: 480px) { .toolbar { grid-template-columns: repeat(5, 1fr); } }
         
@@ -36,16 +41,24 @@
         .btn i { font-size: 16px; margin-bottom: 4px; }
         .btn span { font-size: 9px; font-weight: bold; }
 
-        /* تنسيق الجدول التلقائي */
+        /* جدول السجلات */
         .table-section { margin-top: 25px; border-top: 2px solid rgba(0,0,0,0.05); padding-top: 20px; }
-        .table-wrapper { width: 100%; overflow-x: auto; border-radius: 15px; background: rgba(255,255,255,0.5); }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 400px; }
+        .table-wrapper { width: 100%; overflow-x: auto; border-radius: 15px; background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.3); }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 450px; }
         th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.05); }
         th { background-color: var(--ocean-blue); color: white; font-weight: 600; }
         tr:hover { background-color: rgba(255,255,255,0.8); }
-        .delete-btn { color: #e74c3c; cursor: pointer; border: none; background: none; font-size: 16px; }
+        .delete-btn { color: #e74c3c; cursor: pointer; border: none; background: none; font-size: 16px; transition: 0.2s; }
+        .delete-btn:hover { transform: scale(1.2); }
 
-        .copyright { margin-top: 15px; text-align: center; color: #7f8c8d; font-size: 11px; }
+        .copyright { margin-top: 15px; text-align: center; color: #7f8c8d; font-size: 11px; line-height: 1.6; }
+
+        @media print {
+            .ocean, .toolbar, .form-grid, h3, .copyright, .delete-btn { display: none !important; }
+            .glass-container { box-shadow: none; border: none; width: 100%; max-width: none; background: white; }
+            table { font-size: 14px; border: 1px solid #000; }
+            th { background: #eee !important; color: #000; }
+        }
     </style>
 </head>
 <body>
@@ -81,7 +94,7 @@
         </div>
 
         <div class="table-section">
-            <h4 style="margin-bottom: 10px; color: var(--text-dark);"><i class="fas fa-database"></i> السجلات المحفوظة حالياً:</h4>
+            <h4 style="margin-bottom: 10px; color: var(--text-dark);"><i class="fas fa-database"></i> الأرشيف السحابي اللحظي:</h4>
             <div class="table-wrapper">
                 <table>
                     <thead>
@@ -89,20 +102,24 @@
                             <th>الاسم</th>
                             <th>المدينة</th>
                             <th>التاريخ</th>
-                            <th>حذف</th>
+                            <th>إجراء</th>
                         </tr>
                     </thead>
                     <tbody id="autoTableBody">
-                        </tbody>
+                        <tr><td colspan="4">جاري الاتصال بالسحابة...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>
     </div>
 
     <script>
+        // إعدادات Firebase المصححة
         const firebaseConfig = {
             apiKey: "AIzaSyCCU7ngPz4swM0jRDpmQ8GS9bMgp2Kh1IU",
             authDomain: "oceanproject-a02aa.firebaseapp.com",
+            // تم تصحيح رابط قاعدة البيانات بإضافة -default-rtdb
+            databaseURL: "https://oceanproject-a02aa-default-rtdb.firebaseio.com",
             projectId: "oceanproject-a02aa",
             storageBucket: "oceanproject-a02aa.firebasestorage.app",
             messagingSenderId: "108495702627",
@@ -113,7 +130,7 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // وظيفة التحديث التلقائي للجدول عند حدوث أي تغيير في السحابة
+        // تحديث الجدول تلقائياً عند أي تغيير
         database.ref('records').on('value', (snapshot) => {
             const body = document.getElementById('autoTableBody');
             body.innerHTML = "";
@@ -122,55 +139,87 @@
                     const row = child.val();
                     body.innerHTML += `
                         <tr>
-                            <td style="font-weight:bold;">${row.name}</td>
+                            <td style="font-weight:bold; color:#2c3e50;">${row.name}</td>
                             <td>${row.city || '-'}</td>
-                            <td style="font-size:10px;">${row.updatedAt.split(',')[0]}</td>
+                            <td style="font-size:10px;">${row.updatedAt ? row.updatedAt.split(',')[0] : '-'}</td>
                             <td><button class="delete-btn" onclick="deleteRecord('${child.key}')"><i class="fas fa-minus-circle"></i></button></td>
                         </tr>
                     `;
                 });
             } else {
-                body.innerHTML = "<tr><td colspan='4'>لا توجد سجلات حالياً</td></tr>";
+                body.innerHTML = "<tr><td colspan="4">لا توجد سجلات حالياً</td></tr>";
             }
+        }, (error) => {
+            console.error("Firebase Error:", error);
+            document.getElementById('autoTableBody').innerHTML = `<tr><td colspan="4" style="color:red;">خطأ في الصلاحيات: تأكد من إعدادات Rules</td></tr>`;
         });
 
         function saveToCloud() {
-            const name = document.getElementById('name').value;
-            if(!name) return alert("الاسم مطلوب");
+            const nameField = document.getElementById('name');
+            const name = nameField.value.trim();
+            
+            if(!name) {
+                alert("يرجى كتابة الاسم الكامل للحفظ");
+                nameField.focus();
+                return;
+            }
+
             const data = {
-                name, family: document.getElementById('family').value,
-                age: document.getElementById('age').value, height: document.getElementById('height').value,
-                weight: document.getElementById('weight').value, city: document.getElementById('city').value,
-                terms: document.getElementById('terms').value, updatedAt: new Date().toLocaleString('ar-SA')
+                name: name,
+                family: document.getElementById('family').value,
+                age: document.getElementById('age').value,
+                height: document.getElementById('height').value,
+                weight: document.getElementById('weight').value,
+                city: document.getElementById('city').value,
+                terms: document.getElementById('terms').value,
+                updatedAt: new Date().toLocaleString('ar-SA')
             };
+
+            // الحفظ باستخدام اسم الشخص كمفتاح فريد
             database.ref('records/' + name.replace(/\s/g, '_')).set(data)
-                .then(() => alert("تم الحفظ بنجاح")).catch(e => alert(e.message));
+                .then(() => {
+                    alert("تم الحفظ والمزامنة بنجاح!");
+                })
+                .catch(e => {
+                    console.error("Save Error:", e);
+                    alert("فشل الحفظ: تأكد من تفعيل Rules في Firebase");
+                });
+        }
+
+        function loadFromCloud() {
+            const name = document.getElementById('name').value.trim();
+            if(!name) return alert("اكتب الاسم المراد استرجاع بياناته");
+            
+            database.ref('records/' + name.replace(/\s/g, '_')).once('value').then(s => {
+                if(s.exists()){
+                    const d = s.val();
+                    document.getElementById('family').value = d.family || '';
+                    document.getElementById('age').value = d.age || '';
+                    document.getElementById('height').value = d.height || '';
+                    document.getElementById('weight').value = d.weight || '';
+                    document.getElementById('city').value = d.city || '';
+                    document.getElementById('terms').value = d.terms || '';
+                    alert("تمت مزامنة بيانات: " + name);
+                } else {
+                    alert("لا يوجد سجل بهذا الاسم في السحابة");
+                }
+            });
         }
 
         function deleteRecord(key) {
-            if(confirm("هل أنت متأكد من حذف هذا السجل نهائياً؟")) {
+            if(confirm("سيتم حذف السجل نهائياً من السحابة، هل أنت متأكد؟")) {
                 database.ref('records/' + key).remove();
             }
         }
 
-        function loadFromCloud() {
-            const name = document.getElementById('name').value;
-            if(!name) return alert("اكتب الاسم للمزامنة");
-            database.ref('records/' + name.replace(/\s/g, '_')).once('value').then(s => {
-                if(s.exists()){
-                    const d = s.val();
-                    document.getElementById('family').value = d.family;
-                    document.getElementById('age').value = d.age;
-                    document.getElementById('height').value = d.height;
-                    document.getElementById('weight').value = d.weight;
-                    document.getElementById('city').value = d.city;
-                    document.getElementById('terms').value = d.terms;
-                } else alert("لا يوجد سجل");
-            });
+        function clearInputs() {
+            document.querySelectorAll('input, textarea').forEach(i => i.value = '');
         }
 
-        function clearInputs() { document.querySelectorAll('input, textarea').forEach(i => i.value = ''); }
-        function prepareNew() { clearInputs(); document.getElementById('name').focus(); }
+        function prepareNew() {
+            clearInputs();
+            document.getElementById('name').focus();
+        }
     </script>
 </body>
 </html>
